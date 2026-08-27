@@ -1,0 +1,2 @@
+[console_scripts]
+open-brain = open_brain.__main__:main

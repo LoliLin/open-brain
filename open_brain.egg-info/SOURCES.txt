@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+open_brain/__init__.py
+open_brain/__main__.py
+open_brain/app.py
+open_brain/openai_format.py
+open_brain/schemas.py
+open_brain/store.py
+open_brain.egg-info/PKG-INFO
+open_brain.egg-info/SOURCES.txt
+open_brain.egg-info/dependency_links.txt
+open_brain.egg-info/entry_points.txt
+open_brain.egg-info/requires.txt
+open_brain.egg-info/top_level.txt
+open_brain/static/index.html
+tests/test_api.py

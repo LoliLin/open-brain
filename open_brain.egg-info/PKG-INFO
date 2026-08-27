@@ -1,0 +1,60 @@
+Metadata-Version: 2.4
+Name: open-brain
+Version: 0.1.0
+Summary: OpenAI-compatible API served by a human operator
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn[standard]>=0.32.0
+Requires-Dist: pydantic>=2.9.0
+Provides-Extra: dev
+Requires-Dist: httpx>=0.27.0; extra == "dev"
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+
+# Open Brain
+
+OpenAI 兼容 API，回复由人在控制台手工完成。任何走 Chat Completions / Completions 的客户端都能接，操作员打开网页当模型。
+
+## 启动
+
+```bash
+pip install -e ".[dev]"
+python -m open_brain --port 8000
+```
+
+- 操作员控制台: http://127.0.0.1:8000/
+- OpenAI Base URL: `http://127.0.0.1:8000/v1`
+
+## 客户端
+
+任意 OpenAI SDK，把 `base_url` 指过来即可。API Key 默认不校验；若设置了 `OPEN_BRAIN_API_KEY`，请求需带 `Authorization: Bearer ...`。
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://127.0.0.1:8000/v1", api_key="sk-any")
+print(client.chat.completions.create(
+    model="human",
+    messages=[{"role": "user", "content": "你好"}],
+).choices[0].message.content)
+```
+
+```bash
+curl http://127.0.0.1:8000/v1/chat/completions \
+  -H "content-type: application/json" \
+  -d '{"model":"human","messages":[{"role":"user","content":"hi"}]}'
+```
+
+请求会一直挂起，直到控制台点「发送回复」。`stream: true` 时，人工写完后按块以 SSE 推给客户端。
+
+## 环境变量
+
+| 变量 | 含义 | 默认 |
+| --- | --- | --- |
+| `OPEN_BRAIN_HOST` | 监听地址 | `0.0.0.0` |
+| `OPEN_BRAIN_PORT` | 端口 | `8000` |
+| `OPEN_BRAIN_MODEL` | `/v1/models` 里排第一的模型名 | `human` |
+| `OPEN_BRAIN_API_KEY` | 非空则校验 Bearer | 空（不校验） |
+| `OPEN_BRAIN_WAIT_TIMEOUT` | 等人回复的秒数 | `21600` |
+
+兼容接口：`GET /v1/models`、`POST /v1/chat/completions`、`POST /v1/completions`，含非流式和 SSE。
