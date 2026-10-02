@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -12,6 +13,21 @@ JobStatus = Literal["pending", "completed", "rejected", "expired", "cancelled"]
 
 def new_id(prefix: str) -> str:
     return f"{prefix}-{uuid.uuid4().hex[:24]}"
+
+
+def message_fingerprint(msg: dict[str, Any]) -> str:
+    key = {
+        "role": msg.get("role"),
+        "content": msg.get("content"),
+        "name": msg.get("name"),
+        "tool_call_id": msg.get("tool_call_id"),
+        "tool_calls": msg.get("tool_calls"),
+    }
+    return json.dumps(key, sort_keys=True, ensure_ascii=False)
+
+
+def sequence_key(fingerprints: list[str]) -> str:
+    return "|||".join(fingerprints)
 
 
 @dataclass
@@ -26,6 +42,7 @@ class Job:
     prompt: str | None = None
     status: JobStatus = "pending"
     reply: str | None = None
+    tool_calls: list[dict[str, Any]] | None = None
     finish_reason: str = "stop"
     error: str | None = None
     usage: dict[str, int] = field(
@@ -36,6 +53,8 @@ class Job:
         }
     )
     event: asyncio.Event = field(default_factory=asyncio.Event)
+    prefix_match: dict[str, Any] | None = None
+    exact_match: dict[str, Any] | None = None
 
     def to_public(self) -> dict[str, Any]:
         return {
@@ -48,10 +67,13 @@ class Job:
             "messages": self.messages,
             "prompt": self.prompt,
             "reply": self.reply,
+            "tool_calls": self.tool_calls,
             "finish_reason": self.finish_reason,
             "error": self.error,
             "usage": self.usage,
             "payload": self.payload,
+            "prefix_match": self.prefix_match,
+            "exact_match": self.exact_match,
         }
 
 
@@ -60,6 +82,14 @@ class JobStore:
         self.ttl_seconds = ttl_seconds
         self._jobs: dict[str, Job] = {}
         self._listeners: set[asyncio.Queue[dict[str, Any]]] = set()
+        self._exact_cache: dict[str, dict[str, Any]] = {}
+        self._completed_history: list[tuple[list[str], str]] = []
+        self._snippets: list[dict[str, str]] = [
+            {"id": "snip-1", "title": "好的/处理中", "content": "好的，收到您的请求，正在为您处理中。"},
+            {"id": "snip-2", "title": "完成确认", "content": "已为您处理完成，如有其他问题请随时告诉我。"},
+            {"id": "snip-3", "title": "补充细节", "content": "请提供更多上下文或具体细节，以便我能更准确地回答。"},
+            {"id": "snip-4", "title": "无法执行", "content": "抱歉，作为人工协助助手，该操作超出当前权限范围，无法直接执行。"},
+        ]
 
     def create(
         self,
@@ -81,6 +111,43 @@ class JobStore:
             messages=messages,
             prompt=prompt,
         )
+
+        fps = [message_fingerprint(m) for m in messages]
+        seq_key = sequence_key(fps)
+
+        if seq_key in self._exact_cache:
+            cached = self._exact_cache[seq_key]
+            job.exact_match = {
+                "matched_job_id": cached.get("job_id"),
+                "reply": cached.get("reply"),
+                "tool_calls": cached.get("tool_calls"),
+                "finish_reason": cached.get("finish_reason", "stop"),
+                "created": cached.get("created"),
+            }
+
+        longest_k = 0
+        matched_job_id = None
+        for hist_fps, hist_job_id in reversed(self._completed_history):
+            k = 0
+            while k < len(fps) and k < len(hist_fps) and fps[k] == hist_fps[k]:
+                k += 1
+            if k > longest_k and k < len(fps):
+                longest_k = k
+                matched_job_id = hist_job_id
+
+        if longest_k > 0 and matched_job_id:
+            job.prefix_match = {
+                "matched_job_id": matched_job_id,
+                "prefix_count": longest_k,
+                "total_count": len(fps),
+            }
+        elif len(fps) > 2:
+            job.prefix_match = {
+                "matched_job_id": None,
+                "prefix_count": len(fps) - 1,
+                "total_count": len(fps),
+            }
+
         self._jobs[job.id] = job
         self._broadcast({"type": "created", "job": job.to_public()})
         return job
@@ -95,14 +162,40 @@ class JobStore:
         jobs = sorted(self._jobs.values(), key=lambda j: j.created, reverse=True)
         return jobs[:limit]
 
-    def complete(self, job: Job, content: str, finish_reason: str = "stop") -> None:
+    def complete(
+        self,
+        job: Job,
+        content: str | None = "",
+        finish_reason: str = "stop",
+        tool_calls: list[dict[str, Any]] | None = None,
+    ) -> None:
         if job.status != "pending":
             raise ValueError(f"job {job.id} is {job.status}")
-        job.reply = content
+        job.reply = content or ""
+        job.tool_calls = tool_calls
+        if tool_calls and finish_reason == "stop":
+            finish_reason = "tool_calls"
         job.finish_reason = finish_reason
         job.status = "completed"
-        job.usage["completion_tokens"] = max(1, len(content) // 4)
+
+        reply_len = len(content or "")
+        if tool_calls:
+            reply_len += len(json.dumps(tool_calls, ensure_ascii=False))
+        job.usage["completion_tokens"] = max(1, reply_len // 4)
         job.usage["total_tokens"] = job.usage["prompt_tokens"] + job.usage["completion_tokens"]
+
+        fps = [message_fingerprint(m) for m in job.messages]
+        if fps:
+            seq_key = sequence_key(fps)
+            self._exact_cache[seq_key] = {
+                "job_id": job.id,
+                "reply": job.reply,
+                "tool_calls": job.tool_calls,
+                "finish_reason": job.finish_reason,
+                "created": int(time.time()),
+            }
+            self._completed_history.append((fps, job.id))
+
         job.event.set()
         self._broadcast({"type": "completed", "job": job.to_public()})
 
@@ -146,3 +239,26 @@ class JobStore:
                 queue.put_nowait(event)
             except asyncio.QueueFull:
                 pass
+
+    def get_snippets(self) -> list[dict[str, str]]:
+        return list(self._snippets)
+
+    def add_snippet(self, title: str, content: str) -> dict[str, str]:
+        snip = {"id": f"snip-{uuid.uuid4().hex[:8]}", "title": title, "content": content}
+        self._snippets.append(snip)
+        return snip
+
+    def delete_snippet(self, snippet_id: str) -> bool:
+        initial = len(self._snippets)
+        self._snippets = [s for s in self._snippets if s["id"] != snippet_id]
+        return len(self._snippets) < initial
+
+    def get_cache_info(self) -> dict[str, Any]:
+        return {
+            "exact_cache_size": len(self._exact_cache),
+            "history_size": len(self._completed_history),
+        }
+
+    def clear_cache(self) -> None:
+        self._exact_cache.clear()
+        self._completed_history.clear()

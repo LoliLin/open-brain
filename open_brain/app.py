@@ -20,7 +20,14 @@ from open_brain.openai_format import (
     prompt_to_messages,
     text_completion,
 )
-from open_brain.schemas import ChatCompletionRequest, CompletionRequest, OperatorReject, OperatorReply
+from open_brain.schemas import (
+    ChatCompletionRequest,
+    CompletionRequest,
+    OperatorReject,
+    OperatorReply,
+    Snippet,
+    SnippetCreate,
+)
 from open_brain.store import Job, JobStore
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -204,7 +211,12 @@ async def operator_reply(job_id: str, body: OperatorReply) -> dict[str, Any]:
     if job is None:
         raise HTTPException(status_code=404, detail="job not found")
     try:
-        store.complete(job, body.content, body.finish_reason)
+        store.complete(
+            job,
+            content=body.content,
+            finish_reason=body.finish_reason,
+            tool_calls=body.tool_calls,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return job.to_public()
@@ -220,6 +232,35 @@ async def operator_reject(job_id: str, body: OperatorReject) -> dict[str, Any]:
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return job.to_public()
+
+
+@app.get("/operator/snippets")
+async def get_snippets() -> list[dict[str, str]]:
+    return store.get_snippets()
+
+
+@app.post("/operator/snippets")
+async def add_snippet(body: SnippetCreate) -> dict[str, str]:
+    return store.add_snippet(body.title, body.content)
+
+
+@app.delete("/operator/snippets/{snippet_id}")
+async def delete_snippet(snippet_id: str) -> dict[str, Any]:
+    deleted = store.delete_snippet(snippet_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="snippet not found")
+    return {"ok": True}
+
+
+@app.get("/operator/cache")
+async def get_cache() -> dict[str, Any]:
+    return store.get_cache_info()
+
+
+@app.post("/operator/cache/clear")
+async def clear_cache() -> dict[str, Any]:
+    store.clear_cache()
+    return {"ok": True}
 
 
 @app.websocket("/operator/ws")

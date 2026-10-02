@@ -67,12 +67,15 @@ open-brain --port 8000
 
 打开根路径即可，无需登录。
 
-- 左侧是任务列表，`pending` 优先。
-- 右侧展示完整 messages（含 system / user / assistant / tool）。
-- 文本框里以助手身份回复，**发送回复** 或 `Ctrl+Enter`。
-- **拒绝** 会让客户端收到 OpenAI 风格错误（`code: operator_rejected`）。
-- 流式请求在控制台看起来一样：先写完整回复，再一次性切成 SSE 块发给客户端。
-- 控制台通过 WebSocket `/operator/ws` 实时刷新。
+- **任务管理与实时刷新**：左侧列表自动维护状态（pending / completed / rejected），支持实时搜索过滤与新任务提示音（免音频文件的 Web Audio API 合成）。
+- **消息前缀折叠与缓存**：自动识别并折叠与前序轮次完全相同的历史前缀消息，免去重复翻看已知历史的烦恼；仅高亮展示本次最新增量消息；对于完全相同的历史请求支持一键采纳缓存回复。
+- **工具调用（Tool Calls）专属优化**：
+  - 自动解析展示客户端声明的 `tools` 函数清单、参数 Schema 与必填标记。
+  - 支持交互式工具调用构建器（一键生成参数模板、实时 JSON 格式校验、自动分配 Call ID）。
+  - 对话流中结构化高亮呈现 `tool_calls` 与工具执行返回结果（`role: tool`），支持一键复制代码块。
+- **常用回复模板（Snippets）**：内置并支持自定义常用话术，一键填入输入框。
+- **标准回复与拒绝**：支持普通文本回复与结构化工具调用回复；`Ctrl+Enter` 快捷发送；拒绝会让客户端收到标准错误（`code: operator_rejected`）。
+- 控制台通过 WebSocket `/operator/ws` 实时双向刷新。
 
 ## 客户端
 
@@ -202,7 +205,7 @@ Chat Completions 成功响应示例：
 
 `usage` 里的 token 数按字符粗估（约 4 字符 = 1 token），不是真实 tokenizer。
 
-请求里多出来的字段（`temperature`、`tools`、`response_format` 等）会收下并在控制台展示，**不会自动执行**。工具调用需要操作员自己按 OpenAI `tool_calls` 格式写进回复内容——当前回复接口只提交纯文本 `content`。
+请求里多出来的字段（`temperature`、`tools`、`response_format` 等）会收下并在控制台直观呈现。控制台原生支持查看客户端 `tools` 规范并交互式发起 `tool_calls`。
 
 ## 操作员 HTTP API
 
@@ -211,18 +214,42 @@ Chat Completions 成功响应示例：
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | `GET` | `/operator/jobs` | 最近任务（pending 优先展示由前端排序） |
-| `GET` | `/operator/jobs/{id}` | 单个任务 |
-| `POST` | `/operator/jobs/{id}/reply` | 提交回复 |
+| `GET` | `/operator/jobs/{id}` | 单个任务详情（含 prefix_match / exact_match） |
+| `POST` | `/operator/jobs/{id}/reply` | 提交回复（支持纯文本或 tool_calls） |
 | `POST` | `/operator/jobs/{id}/reject` | 拒绝 |
+| `GET` | `/operator/snippets` | 获取常用回复模板列表 |
+| `POST` | `/operator/snippets` | 新增常用回复模板 |
+| `DELETE` | `/operator/snippets/{id}` | 删除常用回复模板 |
+| `GET` | `/operator/cache` | 获取历史前缀与精确缓存统计 |
+| `POST` | `/operator/cache/clear` | 清空响应缓存 |
 | `WS` | `/operator/ws` | 任务创建/完成/拒绝/取消事件 |
 
-回复：
+回复文本示例：
 
 ```json
 {"content": "助手要说的话", "finish_reason": "stop"}
 ```
 
-`finish_reason`：`stop` | `length` | `content_filter`。
+回复工具调用示例：
+
+```json
+{
+  "content": null,
+  "finish_reason": "tool_calls",
+  "tool_calls": [
+    {
+      "id": "call_12345",
+      "type": "function",
+      "function": {
+        "name": "get_current_weather",
+        "arguments": "{\"location\": \"Hangzhou\"}"
+      }
+    }
+  ]
+}
+```
+
+`finish_reason`：`stop` | `length` | `content_filter` | `tool_calls`。
 
 拒绝：
 

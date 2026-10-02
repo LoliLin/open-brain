@@ -51,14 +51,26 @@ class CompletionRequest(BaseModel):
 
 
 class OperatorReply(BaseModel):
-    content: str
-    finish_reason: Literal["stop", "length", "content_filter"] = "stop"
+    content: str | None = ""
+    tool_calls: list[dict[str, Any]] | None = None
+    finish_reason: Literal["stop", "length", "content_filter", "tool_calls"] = "stop"
     role: str = "assistant"
 
 
 class OperatorReject(BaseModel):
     message: str = "operator rejected the request"
     code: str = "operator_rejected"
+
+
+class SnippetCreate(BaseModel):
+    title: str
+    content: str
+
+
+class Snippet(BaseModel):
+    id: str
+    title: str
+    content: str
 
 
 class ErrorBody(BaseModel):

@@ -6,107 +6,1311 @@
   <title>Open Brain · 人工模型控制台</title>
   <style>
     :root {
-      --bg: #0f1115;
-      --panel: #171a21;
-      --panel-2: #1e232d;
-      --line: #2c3340;
-      --text: #e8ecf3;
-      --muted: #8b95a7;
-      --accent: #7c9cff;
-      --ok: #3dd68c;
-      --warn: #f5c542;
-      --bad: #ff6b7a;
-      --user: #7c9cff;
-      --assistant: #3dd68c;
-      --system: #f5c542;
+      --bg: #090d16;
+      --panel: #101726;
+      --panel-2: #162035;
+      --panel-3: #1e2c47;
+      --line: #22304d;
+      --line-subtle: #19243a;
+      --text: #f1f5f9;
+      --text-muted: #8fa0ba;
+      --text-dim: #5c6b84;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-dim: rgba(59, 130, 246, 0.15);
+      --ok: #10b981;
+      --ok-dim: rgba(16, 185, 129, 0.15);
+      --warn: #f59e0b;
+      --warn-dim: rgba(245, 158, 11, 0.15);
+      --bad: #ef4444;
+      --bad-dim: rgba(239, 68, 68, 0.15);
+      --purple: #8b5cf6;
+      --purple-dim: rgba(139, 92, 246, 0.15);
+      --cyan: #06b6d4;
+      --cyan-dim: rgba(6, 182, 212, 0.15);
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
     }
+
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 ui-sans-serif, system-ui, "Segoe UI", sans-serif; }
-    body { display: grid; grid-template-columns: 320px 1fr; }
-    aside, main { min-height: 100vh; }
-    aside { border-right: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; }
-    header.brand { padding: 16px 16px 12px; border-bottom: 1px solid var(--line); }
-    header.brand h1 { margin: 0; font-size: 16px; letter-spacing: .02em; }
-    header.brand p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
-    .status { display: flex; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); margin-top: 4px; flex: 0 0 auto; }
-    .dot.live { background: var(--ok); }
-    .jobs { overflow: auto; flex: 1; }
-    .job { padding: 12px 16px; border-bottom: 1px solid var(--line); cursor: pointer; }
-    .job:hover { background: var(--panel-2); }
-    .job.active { background: #24304a; }
-    .job .meta { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11px; }
-    .job .preview { margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .badge { font-size: 10px; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); text-transform: uppercase; }
-    .badge.pending { color: var(--warn); border-color: #6b5420; }
-    .badge.completed { color: var(--ok); border-color: #1f6b46; }
-    .badge.rejected, .badge.expired, .badge.cancelled { color: var(--bad); border-color: #6b2a32; }
-    main { display: grid; grid-template-rows: auto 1fr auto; }
-    .empty { display: grid; place-items: center; color: var(--muted); }
-    .thread { overflow: auto; padding: 20px 24px; }
-    .msg { max-width: 760px; margin: 0 auto 14px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
-    .msg .role { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
-    .msg.user { border-left: 3px solid var(--user); }
-    .msg.assistant { border-left: 3px solid var(--assistant); }
-    .msg.system, .msg.tool, .msg.developer { border-left: 3px solid var(--system); }
-    .msg pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: inherit; }
-    .composer { border-top: 1px solid var(--line); padding: 14px 20px 18px; background: var(--panel); }
-    textarea { width: 100%; min-height: 120px; resize: vertical; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: inherit; }
-    textarea:focus { outline: 1px solid var(--accent); }
-    .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
-    button { background: var(--accent); color: #0b1020; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 650; cursor: pointer; }
-    button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
-    button.danger { background: #4a1e24; color: #ffb4bc; }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    .hint { color: var(--muted); font-size: 12px; margin-left: auto; }
-    .payload { max-width: 760px; margin: 0 auto 16px; color: var(--muted); font-size: 12px; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    body {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #283755; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3b4e77; }
+
+    /* Aside / Sidebar */
+    aside {
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header.brand {
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+    }
+    .brand-title h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .brand-ver {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--line);
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-left: 4px;
+    }
+    .brand-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-btn {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+    .icon-btn:hover {
+      background: var(--panel-2);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .icon-btn.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(16, 23, 38, 0.6);
+    }
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--bad);
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .dot.live {
+      background: var(--ok);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+    .counts-badge {
+      display: flex;
+      gap: 6px;
+    }
+    .cnt-pill {
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .cnt-pending {
+      background: var(--warn-dim);
+      color: var(--warn);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .cnt-completed {
+      background: var(--ok-dim);
+      color: var(--ok);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Filter & Search Bar */
+    .filter-bar {
+      padding: 12px 16px 8px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .search-input-wrap {
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 12px;
+      padding: 7px 28px 7px 10px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+    .search-clear {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 12px;
+      display: none;
+    }
+    .filter-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    .filter-tab {
+      flex: 1;
+      text-align: center;
+      padding: 4px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover {
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    .filter-tab.active {
+      background: var(--panel-3);
+      color: var(--accent);
+      border-color: var(--line);
+    }
+
+    /* Jobs list */
+    .jobs {
+      overflow-y: auto;
+      flex: 1;
+    }
+    .job {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line-subtle);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .job:hover {
+      background: var(--panel-2);
+    }
+    .job.active {
+      background: #18253f;
+      border-left: 3px solid var(--accent);
+    }
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .job-tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .model-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: var(--panel-3);
+      color: var(--text);
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stream-tag {
+      font-size: 10px;
+      color: var(--cyan);
+      font-weight: 600;
+    }
+    .time-tag {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .job-preview {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+    .job-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .indicators {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ind-pill {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .ind-prefix {
+      background: var(--purple-dim);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    .ind-exact {
+      background: var(--cyan-dim);
+      color: var(--cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+    .ind-tool {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .badge.pending { color: var(--warn); background: var(--warn-dim); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge.completed { color: var(--ok); background: var(--ok-dim); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge.rejected, .badge.expired, .badge.cancelled { color: var(--bad); background: var(--bad-dim); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* Main Area */
+    main {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-dim);
+      gap: 12px;
+    }
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--line);
+    }
+
+    /* Top Action Bar in Main */
+    .topbar {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .job-id-pill {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .job-id-pill:hover {
+      border-color: var(--accent);
+    }
+    .topbar-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .topbar-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Content Area */
+    .thread {
+      overflow-y: auto;
+      padding: 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Notice Banner for Exact Cache Match */
+    .cache-banner {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(59, 130, 246, 0.1));
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .cache-banner-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .cache-banner-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cache-banner-preview {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-height: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: var(--font-mono);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+    .cache-banner-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Available Tools Card */
+    .tools-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .tools-card-header {
+      padding: 10px 16px;
+      background: var(--panel-2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fbbf24;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tools-card-body {
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+    .tool-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tool-item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tool-func-name {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      color: #a78bfa;
+    }
+    .tool-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .tool-params-summary {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    /* Prefix Folding Container */
+    .prefix-accordion {
+      background: var(--panel);
+      border: 1px dashed var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .prefix-header {
+      padding: 10px 16px;
+      background: rgba(30, 44, 71, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--purple);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+    }
+    .prefix-header:hover {
+      background: rgba(30, 44, 71, 0.7);
+    }
+    .prefix-body {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      background: rgba(10, 15, 26, 0.4);
+    }
+
+    /* Messages */
+    .msg-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    .msg-card.new-turn {
+      border: 1px solid #3b82f6;
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.15);
+    }
+    .msg-header {
+      padding: 8px 14px;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .msg-role-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .role-user { color: #60a5fa; }
+    .role-assistant { color: #34d399; }
+    .role-system { color: #fbbf24; }
+    .role-tool { color: #22d3ee; }
+    .role-toolcall { color: #c084fc; }
+
+    .msg-body {
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+    .msg-body pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: inherit;
+    }
+    .code-block {
+      background: #090d16;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      padding: 2px 8px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    /* Tool Call in Message Box */
+    .tool-call-box {
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      margin-top: 6px;
+    }
+    .tool-call-box-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #c084fc;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Tool Result in Message Box */
+    .tool-result-box {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+    .tool-result-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #22d3ee;
+      margin-bottom: 4px;
+    }
+
+    /* Composer Area */
+    .composer {
+      border-top: 1px solid var(--line);
+      padding: 14px 24px 18px;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Snippets Chips Bar */
+    .snippets-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .snippet-chip {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .snippet-chip:hover {
+      background: var(--panel-3);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .snippet-add-btn {
+      background: transparent;
+      border: 1px dashed var(--line);
+      color: var(--text-dim);
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .snippet-add-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    /* Composer Mode Switcher */
+    .composer-modes {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mode-tabs {
+      display: flex;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+    .mode-tab {
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .mode-tab.active {
+      background: var(--panel-3);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    .finish-reason-select {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      padding: 4px 8px;
+      outline: none;
+    }
+
+    /* Textarea & Inputs */
+    textarea.composer-text {
+      width: 100%;
+      min-height: 90px;
+      max-height: 240px;
+      resize: vertical;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font: inherit;
+      line-height: 1.5;
+    }
+    textarea.composer-text:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Tool Call Builder UI */
+    .tool-builder {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tool-builder-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .input-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .input-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .std-input, .std-select {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      outline: none;
+    }
+    .std-input:focus, .std-select:focus {
+      border-color: var(--accent);
+    }
+    .json-valid-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .json-valid-badge.valid { color: var(--ok); background: var(--ok-dim); }
+    .json-valid-badge.invalid { color: var(--bad); background: var(--bad-dim); }
+
+    /* Action bar */
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 650;
+      font-size: 13px;
+      cursor: pointer;
+      border: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-danger {
+      background: var(--bad-dim);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: white;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover {
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    .btn-success {
+      background: var(--ok);
+      color: #042f1a;
+    }
+    .btn-success:hover {
+      background: #059669;
+      color: white;
+    }
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .kbd-hint {
+      color: var(--text-dim);
+      font-size: 11px;
+    }
+
+    /* Completed state card */
+    .completed-card {
+      border-top: 1px solid var(--line);
+      padding: 14px 24px;
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .completed-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Modal Dialog */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      width: 90%;
+      max-width: 540px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .modal h2 { margin: 0; font-size: 16px; }
   </style>
 </head>
 <body>
+  <!-- SIDEBAR -->
   <aside>
     <header class="brand">
-      <h1>Open Brain</h1>
-      <p>你就是模型。客户端走 OpenAI 协议，这里人工回复。</p>
+      <div class="brand-title">
+        <div class="brand-logo">🧠</div>
+        <h1>Open Brain</h1>
+        <span class="brand-ver">v0.2.0</span>
+      </div>
+      <div class="brand-actions">
+        <button class="icon-btn" id="soundToggle" title="新请求提示音 (开/关)">🔊</button>
+      </div>
     </header>
-    <div class="status">
-      <span class="dot" id="dot"></span>
-      <span id="conn">连接中…</span>
+
+    <div class="statusbar">
+      <div class="status-left">
+        <span class="dot" id="dot"></span>
+        <span id="conn">连接中…</span>
+      </div>
+      <div class="counts-badge">
+        <span class="cnt-pill cnt-pending" id="pendingCount">0 待处理</span>
+        <span class="cnt-pill cnt-completed" id="completedCount">0 已完成</span>
+      </div>
     </div>
-    <div class="jobs" id="jobs"></div>
+
+    <div class="filter-bar">
+      <div class="search-input-wrap">
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索请求内容、模型或 ID…" />
+        <span class="search-clear" id="searchClear">✕</span>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">全部</button>
+        <button class="filter-tab" data-filter="pending">待处理</button>
+        <button class="filter-tab" data-filter="completed">已回复</button>
+        <button class="filter-tab" data-filter="other">拒绝/超时</button>
+      </div>
+    </div>
+
+    <div class="jobs" id="jobsList"></div>
   </aside>
-  <main>
-    <div class="empty" id="empty">等待客户端请求…</div>
-    <div class="thread" id="thread" hidden></div>
+
+  <!-- MAIN WORKSPACE -->
+  <main id="mainPanel">
+    <div class="empty-state" id="emptyState">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <div>等待客户端请求到来，或从左侧选择一个任务…</div>
+    </div>
+
+    <!-- Active Job Workspace -->
+    <div class="topbar" id="topbar" hidden>
+      <div class="topbar-left">
+        <div class="job-id-pill" id="jobIdPill" title="点击复制完整 ID">
+          <span id="jobIdShort">chatcmpl-...</span>
+          <span style="font-size:10px; color:var(--text-dim)">📋</span>
+        </div>
+        <div class="topbar-meta">
+          <span class="topbar-meta-item">
+            <span class="model-tag" id="topModel">human</span>
+          </span>
+          <span class="topbar-meta-item" id="topStream"></span>
+          <span class="topbar-meta-item" id="topCreated"></span>
+          <span class="topbar-meta-item" id="topTokens"></span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost" id="togglePrefixGlobal" style="font-size: 11px; padding: 4px 10px;">
+          📁 折叠前缀: 开
+        </button>
+        <button class="btn btn-ghost" id="viewRawBtn" style="font-size: 11px; padding: 4px 10px;">
+          { } 原始请求
+        </button>
+      </div>
+    </div>
+
+    <div class="thread" id="thread" hidden>
+      <!-- Exact cache match notification -->
+      <div class="cache-banner" id="cacheBanner" hidden>
+        <div class="cache-banner-info">
+          <div class="cache-banner-title">
+            <span>⚡ 发现完全匹配的历史请求！</span>
+            <span style="font-size: 11px; font-weight: normal; color: var(--text-dim)" id="cacheJobId"></span>
+          </div>
+          <div class="cache-banner-preview" id="cacheReplyPreview"></div>
+        </div>
+        <div class="cache-banner-actions">
+          <button class="btn btn-primary" id="applyCacheSendBtn">⚡ 一键回复此内容</button>
+          <button class="btn btn-ghost" id="fillCacheBtn">填入输入框</button>
+        </div>
+      </div>
+
+      <!-- Available Tools Section -->
+      <div class="tools-card" id="toolsCard" hidden>
+        <div class="tools-card-header" id="toolsCardToggle">
+          <span id="toolsCardCount">🔧 客户端定义了 0 个可用工具</span>
+          <span id="toolsCardChevron">▼</span>
+        </div>
+        <div class="tools-card-body" id="toolsCardBody"></div>
+      </div>
+
+      <!-- Prefix Accordion (Folding identical/prior messages) -->
+      <div class="prefix-accordion" id="prefixAccordion" hidden>
+        <div class="prefix-header" id="prefixHeader">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>📁 已自动折叠已知前缀</span>
+            <span id="prefixSummary" style="font-weight:normal; color:var(--text-muted); font-size:11px;"></span>
+          </div>
+          <span id="prefixToggleText" style="font-size:11px; color:var(--accent);">点击展开 ▾</span>
+        </div>
+        <div class="prefix-body" id="prefixBody" hidden></div>
+      </div>
+
+      <!-- Delta Messages (The new turn) -->
+      <div id="deltaMessages" style="display:flex; flex-direction:column; gap:14px;"></div>
+    </div>
+
+    <!-- COMPOSER -->
     <div class="composer" id="composer" hidden>
-      <textarea id="reply" placeholder="以助手身份回复…"></textarea>
-      <div class="row">
-        <button id="send">发送回复</button>
-        <button class="danger" id="reject">拒绝</button>
-        <span class="hint">Ctrl+Enter 发送 · 流式请求会按字块推给客户端</span>
+      <!-- Quick Snippets Bar -->
+      <div class="snippets-bar" id="snippetsBar">
+        <span style="font-size:11px; color:var(--text-dim); margin-right:4px;">快捷回复:</span>
+        <div id="snippetsList" style="display:flex; gap:6px;"></div>
+        <button class="snippet-add-btn" id="addSnippetBtn">+ 模板</button>
+      </div>
+
+      <!-- Modes Header -->
+      <div class="composer-modes">
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="tabTextMode">💬 文本回复</button>
+          <button class="mode-tab" id="tabToolMode">🔧 工具调用 (Tool Call)</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:11px; color:var(--text-dim)">结束原因:</span>
+          <select class="finish-reason-select" id="finishReasonSelect">
+            <option value="stop">stop (正常完成)</option>
+            <option value="length">length (达到长度限制)</option>
+            <option value="content_filter">content_filter (内容过滤)</option>
+            <option value="tool_calls">tool_calls (工具调用)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Text Mode Input -->
+      <div id="textModePanel">
+        <textarea class="composer-text" id="replyInput" placeholder="以助手 (Assistant) 身份回复… 支持 Markdown 格式"></textarea>
+      </div>
+
+      <!-- Tool Mode Input -->
+      <div class="tool-builder" id="toolModePanel" hidden>
+        <div class="tool-builder-row">
+          <div class="input-group" style="flex: 2;">
+            <label class="input-label">选择或输入工具名称 (Function Name):</label>
+            <select class="std-select" id="toolSelectDropdown"></select>
+          </div>
+          <div class="input-group" style="flex: 1.5;">
+            <label class="input-label">调用 ID (Call ID):</label>
+            <div style="display:flex; gap:6px;">
+              <input type="text" class="std-input" id="toolCallIdInput" style="flex:1;" />
+              <button class="btn btn-ghost" id="regenerateIdBtn" style="padding:4px 8px; font-size:11px;" title="重新生成">🔄</button>
+            </div>
+          </div>
+          <div class="input-group" style="flex: 1; align-self: flex-end;">
+            <button class="btn btn-ghost" id="autoTemplateBtn" style="font-size:11px; padding:7px 10px;">🪄 自动填充模板</button>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label class="input-label">工具调用参数 (JSON Arguments):</label>
+            <span class="json-valid-badge valid" id="jsonBadge">✓ JSON 格式有效</span>
+          </div>
+          <textarea class="composer-text" id="toolArgsInput" style="min-height:75px; font-family:var(--font-mono); font-size:12px;" placeholder='{\n  "location": "Beijing"\n}'></textarea>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">伴随文本消息 (可选 Assistant 内容):</label>
+          <input type="text" class="std-input" id="toolContentInput" placeholder="例如：正在为您调用天气接口查询…" />
+        </div>
+      </div>
+
+      <!-- Action Row -->
+      <div class="action-row">
+        <div class="action-buttons">
+          <button class="btn btn-primary" id="sendBtn">发送回复 (Ctrl+Enter)</button>
+          <button class="btn btn-danger" id="rejectBtn">拒绝请求</button>
+        </div>
+        <div class="kbd-hint">Ctrl+Enter 快捷发送 · 相同前缀自动折叠</div>
+      </div>
+    </div>
+
+    <!-- Completed Info State -->
+    <div class="completed-card" id="completedCard" hidden>
+      <div class="completed-info">
+        <span id="completedBadge" class="badge">COMPLETED</span>
+        <span style="font-size:12px; color:var(--text-muted);" id="completedSummaryText"></span>
+      </div>
+      <div>
+        <button class="btn btn-ghost" id="copyReplyBtn" style="font-size:11px;">📋 复制回复</button>
       </div>
     </div>
   </main>
+
+  <!-- MODALS -->
+  <!-- Raw JSON Modal -->
+  <div class="modal-backdrop" id="rawModal" hidden>
+    <div class="modal" style="max-width: 680px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>原始请求 JSON</h2>
+        <button class="icon-btn" id="closeRawModal">✕</button>
+      </div>
+      <div class="code-block" style="max-height: 400px; overflow-y:auto;">
+        <pre id="rawPayloadContent"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Snippet Modal -->
+  <div class="modal-backdrop" id="snippetModal" hidden>
+    <div class="modal">
+      <h2>新增常用回复模板</h2>
+      <div class="input-group">
+        <label class="input-label">模板标签名 (如: 处理中):</label>
+        <input type="text" class="std-input" id="snippetTitleInput" placeholder="输入简短名称…" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">回复内容:</label>
+        <textarea class="composer-text" id="snippetContentInput" placeholder="输入回复内容…" style="min-height:80px;"></textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-ghost" id="closeSnippetModal">取消</button>
+        <button class="btn btn-primary" id="saveSnippetBtn">保存模板</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const jobsEl = document.getElementById("jobs");
-    const threadEl = document.getElementById("thread");
-    const emptyEl = document.getElementById("empty");
-    const composerEl = document.getElementById("composer");
-    const replyEl = document.getElementById("reply");
-    const sendEl = document.getElementById("send");
-    const rejectEl = document.getElementById("reject");
-    const connEl = document.getElementById("conn");
-    const dotEl = document.getElementById("dot");
+    // Audio Chime via Web Audio API (Zero external audio file needed)
+    function playChime() {
+      if (!soundEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
 
-    let jobs = [];
-    let selected = null;
-    let ws;
+        osc1.type = "sine";
+        osc2.type = "sine";
+        osc1.frequency.setValueAtTime(784, now); // G5
+        osc2.frequency.setValueAtTime(1046.5, now + 0.1); // C6
 
-    function lastUserText(job) {
-      const msgs = job.messages || [];
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        if (msgs[i].role === "user") return textOf(msgs[i].content) || "(空消息)";
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc1.stop(now + 0.1);
+        osc2.start(now + 0.1);
+        osc2.stop(now + 0.35);
+      } catch (e) {
+        console.warn("Audio chime error:", e);
       }
-      return job.prompt || "(无内容)";
+    }
+
+    // State
+    let jobs = [];
+    let selectedId = null;
+    let ws = null;
+    let soundEnabled = true;
+    let filterStatus = "all";
+    let searchQuery = "";
+    let autoFoldPrefix = true;
+    let prefixExpanded = false;
+    let toolsExpanded = false;
+    let currentMode = "text"; // "text" | "tool"
+    let snippets = [];
+
+    // DOM Elements
+    const jobsListEl = document.getElementById("jobsList");
+    const emptyStateEl = document.getElementById("emptyState");
+    const topbarEl = document.getElementById("topbar");
+    const threadEl = document.getElementById("thread");
+    const composerEl = document.getElementById("composer");
+    const completedCardEl = document.getElementById("completedCard");
+    const completedBadgeEl = document.getElementById("completedBadge");
+    const completedSummaryTextEl = document.getElementById("completedSummaryText");
+    const copyReplyBtnEl = document.getElementById("copyReplyBtn");
+
+    const dotEl = document.getElementById("dot");
+    const connEl = document.getElementById("conn");
+    const pendingCountEl = document.getElementById("pendingCount");
+    const completedCountEl = document.getElementById("completedCount");
+    const soundToggleEl = document.getElementById("soundToggle");
+    const searchInputEl = document.getElementById("searchInput");
+    const searchClearEl = document.getElementById("searchClear");
+
+    const jobIdPillEl = document.getElementById("jobIdPill");
+    const jobIdShortEl = document.getElementById("jobIdShort");
+    const topModelEl = document.getElementById("topModel");
+    const topStreamEl = document.getElementById("topStream");
+    const topCreatedEl = document.getElementById("topCreated");
+    const topTokensEl = document.getElementById("topTokens");
+    const togglePrefixGlobalBtn = document.getElementById("togglePrefixGlobal");
+    const viewRawBtn = document.getElementById("viewRawBtn");
+
+    const cacheBannerEl = document.getElementById("cacheBanner");
+    const cacheJobIdEl = document.getElementById("cacheJobId");
+    const cacheReplyPreviewEl = document.getElementById("cacheReplyPreview");
+    const applyCacheSendBtn = document.getElementById("applyCacheSendBtn");
+    const fillCacheBtn = document.getElementById("fillCacheBtn");
+
+    const toolsCardEl = document.getElementById("toolsCard");
+    const toolsCardToggleEl = document.getElementById("toolsCardToggle");
+    const toolsCardCountEl = document.getElementById("toolsCardCount");
+    const toolsCardChevronEl = document.getElementById("toolsCardChevron");
+    const toolsCardBodyEl = document.getElementById("toolsCardBody");
+
+    const prefixAccordionEl = document.getElementById("prefixAccordion");
+    const prefixHeaderEl = document.getElementById("prefixHeader");
+    const prefixSummaryEl = document.getElementById("prefixSummary");
+    const prefixToggleTextEl = document.getElementById("prefixToggleText");
+    const prefixBodyEl = document.getElementById("prefixBody");
+    const deltaMessagesEl = document.getElementById("deltaMessages");
+
+    const snippetsListEl = document.getElementById("snippetsList");
+    const addSnippetBtn = document.getElementById("addSnippetBtn");
+    const tabTextMode = document.getElementById("tabTextMode");
+    const tabToolMode = document.getElementById("tabToolMode");
+    const finishReasonSelect = document.getElementById("finishReasonSelect");
+    const textModePanel = document.getElementById("textModePanel");
+    const toolModePanel = document.getElementById("toolModePanel");
+    const replyInput = document.getElementById("replyInput");
+
+    const toolSelectDropdown = document.getElementById("toolSelectDropdown");
+    const toolCallIdInput = document.getElementById("toolCallIdInput");
+    const regenerateIdBtn = document.getElementById("regenerateIdBtn");
+    const autoTemplateBtn = document.getElementById("autoTemplateBtn");
+    const jsonBadge = document.getElementById("jsonBadge");
+    const toolArgsInput = document.getElementById("toolArgsInput");
+    const toolContentInput = document.getElementById("toolContentInput");
+
+    const sendBtn = document.getElementById("sendBtn");
+    const rejectBtn = document.getElementById("rejectBtn");
+
+    const rawModal = document.getElementById("rawModal");
+    const closeRawModal = document.getElementById("closeRawModal");
+    const rawPayloadContent = document.getElementById("rawPayloadContent");
+
+    const snippetModal = document.getElementById("snippetModal");
+    const closeSnippetModal = document.getElementById("closeSnippetModal");
+    const saveSnippetBtn = document.getElementById("saveSnippetBtn");
+    const snippetTitleInput = document.getElementById("snippetTitleInput");
+    const snippetContentInput = document.getElementById("snippetContentInput");
+
+    // Utilities
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    function generateCallId() {
+      return "call_" + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6);
+    }
+
+    function timeAgo(epochSec) {
+      if (!epochSec) return "";
+      const diff = Math.floor(Date.now() / 1000 - epochSec);
+      if (diff < 10) return "刚刚";
+      if (diff < 60) return `${diff}秒前`;
+      if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`;
+      return new Date(epochSec * 1000).toLocaleDateString();
     }
 
     function textOf(content) {
@@ -116,147 +1320,760 @@
         return content.map((p) => {
           if (typeof p === "string") return p;
           if (p && p.type === "text") return p.text || "";
+          if (p && p.type === "image_url") return `[图片: ${p.image_url?.url || p.image_url}]`;
           return JSON.stringify(p);
         }).join("\n");
       }
-      return JSON.stringify(content);
+      return JSON.stringify(content, null, 2);
     }
 
+    function lastUserText(job) {
+      const msgs = job.messages || [];
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].role === "user") return textOf(msgs[i].content) || "(空消息)";
+      }
+      return job.prompt || "(无内容)";
+    }
+
+    // Markdown Parser
+    function renderMarkdown(txt) {
+      if (!txt) return "";
+      let html = escapeHtml(txt);
+      // Code blocks ```code```
+      html = html.replace(/```([a-zA-Z0-9_\-]+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+        const id = "code_" + Math.random().toString(36).substr(2, 9);
+        return `<div class="code-block" style="position:relative;">
+          <button class="copy-btn" onclick="copyCode('${id}')">复制</button>
+          <pre id="${id}">${code}</pre>
+        </div>`;
+      });
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code style="background:var(--panel-2); padding:1px 5px; border-radius:4px; font-family:var(--font-mono); font-size:12px;">$1</code>');
+      // Bold
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      // Italic
+      html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      return html;
+    }
+
+    window.copyCode = function(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        navigator.clipboard.writeText(el.innerText);
+        alert("已复制到剪贴板！");
+      }
+    };
+
+    // Render Jobs List
     function renderJobs() {
-      jobsEl.innerHTML = jobs.map((j) => `
-        <div class="job ${selected === j.id ? "active" : ""}" data-id="${j.id}">
-          <div class="meta">
-            <span>${j.kind} · ${j.model}${j.stream ? " · stream" : ""}</span>
-            <span class="badge ${j.status}">${j.status}</span>
-          </div>
-          <div class="preview">${escapeHtml(lastUserText(j))}</div>
-        </div>
-      `).join("") || `<div class="job"><div class="preview" style="color:var(--muted)">暂无任务</div></div>`;
-    }
+      let filtered = jobs.filter((j) => {
+        if (filterStatus === "pending" && j.status !== "pending") return false;
+        if (filterStatus === "completed" && j.status !== "completed") return false;
+        if (filterStatus === "other" && (j.status === "pending" || j.status === "completed")) return false;
 
-    function renderThread(job) {
-      if (!job) {
-        emptyEl.hidden = false;
-        threadEl.hidden = true;
-        composerEl.hidden = true;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const idMatch = j.id.toLowerCase().includes(q);
+          const modelMatch = (j.model || "").toLowerCase().includes(q);
+          const textMatch = lastUserText(j).toLowerCase().includes(q);
+          if (!idMatch && !modelMatch && !textMatch) return false;
+        }
+        return true;
+      });
+
+      // Update counters
+      const pendingCount = jobs.filter(j => j.status === "pending").length;
+      const completedCount = jobs.filter(j => j.status === "completed").length;
+      pendingCountEl.textContent = `${pendingCount} 待处理`;
+      completedCountEl.textContent = `${completedCount} 已完成`;
+      document.title = pendingCount > 0 ? `(${pendingCount}) 待处理 · Open Brain` : "Open Brain · 人工模型控制台";
+
+      if (filtered.length === 0) {
+        jobsListEl.innerHTML = `
+          <div style="padding: 24px; text-align: center; color: var(--text-dim); font-size: 13px;">
+            ${searchQuery ? "未找到匹配的任务" : "暂无任务"}
+          </div>`;
         return;
       }
-      emptyEl.hidden = true;
+
+      jobsListEl.innerHTML = filtered.map((j) => {
+        const isSel = selectedId === j.id;
+        const toolsCount = j.payload?.tools?.length || 0;
+        const hasPrefix = j.prefix_match && j.prefix_match.prefix_count > 0;
+        const hasExact = !!j.exact_match;
+
+        return `
+          <div class="job ${isSel ? "active" : ""}" data-id="${j.id}">
+            <div class="job-header">
+              <div class="job-tags">
+                <span class="model-tag" title="${escapeHtml(j.model)}">${escapeHtml(j.model)}</span>
+                ${j.stream ? '<span class="stream-tag">⚡ 流式</span>' : ''}
+              </div>
+              <span class="time-tag">${timeAgo(j.created)}</span>
+            </div>
+            <div class="job-preview">${escapeHtml(lastUserText(j))}</div>
+            <div class="job-footer">
+              <div class="indicators">
+                ${hasExact ? '<span class="ind-pill ind-exact">⚡ 命中缓存</span>' : ''}
+                ${hasPrefix ? `<span class="ind-pill ind-prefix">🔗 续接第 ${j.messages?.length || 1} 轮</span>` : ''}
+                ${toolsCount > 0 ? `<span class="ind-pill ind-tool">🔧 ${toolsCount} 个工具</span>` : ''}
+              </div>
+              <span class="badge ${j.status}">${j.status}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Render Current Job Detail
+    function renderThread(job) {
+      if (!job) {
+        emptyStateEl.hidden = false;
+        topbarEl.hidden = true;
+        threadEl.hidden = true;
+        composerEl.hidden = true;
+        completedCardEl.hidden = true;
+        return;
+      }
+
+      emptyStateEl.hidden = true;
+      topbarEl.hidden = false;
       threadEl.hidden = false;
-      composerEl.hidden = job.status !== "pending";
-      sendEl.disabled = job.status !== "pending";
-      rejectEl.disabled = job.status !== "pending";
-      const extra = [];
-      if (job.payload && job.payload.tools) extra.push("tools: " + JSON.stringify(job.payload.tools));
-      if (job.payload && job.payload.response_format) extra.push("response_format: " + JSON.stringify(job.payload.response_format));
-      const msgs = (job.messages || []).map((m) => `
-        <div class="msg ${escapeHtml(m.role || "user")}">
-          <div class="role">${escapeHtml(m.role || "user")}${m.name ? " · " + escapeHtml(m.name) : ""}</div>
-          <pre>${escapeHtml(textOf(m.content) || (m.tool_calls ? JSON.stringify(m.tool_calls, null, 2) : ""))}</pre>
+
+      const isPending = job.status === "pending";
+      composerEl.hidden = !isPending;
+      completedCardEl.hidden = isPending;
+
+      // Update Topbar
+      jobIdShortEl.textContent = job.id;
+      topModelEl.textContent = job.model;
+      topStreamEl.innerHTML = job.stream ? '<span style="color:var(--cyan)">⚡ 流式响应</span>' : '<span>非流式</span>';
+      topCreatedEl.textContent = `创建于 ${new Date(job.created * 1000).toLocaleTimeString()}`;
+      topTokensEl.textContent = `Token: ${job.usage?.prompt_tokens || 0} 提示 + ${job.usage?.completion_tokens || 0} 回复 = ${job.usage?.total_tokens || 0}`;
+
+      // 1. Exact Match Cache Banner
+      if (isPending && job.exact_match) {
+        cacheBannerEl.hidden = false;
+        cacheJobIdEl.textContent = `(源任务: #${job.exact_match.matched_job_id})`;
+        const cacheText = job.exact_match.reply || JSON.stringify(job.exact_match.tool_calls || "");
+        cacheReplyPreviewEl.textContent = cacheText;
+      } else {
+        cacheBannerEl.hidden = true;
+      }
+
+      // 2. Available Tools Section
+      const tools = job.payload?.tools || [];
+      if (tools.length > 0) {
+        toolsCardEl.hidden = false;
+        toolsCardCountEl.textContent = `🔧 客户端定义了 ${tools.length} 个可用工具函数 (点击${toolsExpanded ? '收起' : '展开'})`;
+        toolsCardChevronEl.textContent = toolsExpanded ? '▲' : '▼';
+        toolsCardBodyEl.hidden = !toolsExpanded;
+
+        toolsCardBodyEl.innerHTML = tools.map((t) => {
+          const fn = t.function || {};
+          const params = fn.parameters || {};
+          const props = params.properties || {};
+          const reqs = params.required || [];
+
+          const propList = Object.keys(props).map(k => {
+            const isReq = reqs.includes(k);
+            return `<span style="color:${isReq ? '#f87171' : 'var(--text-muted)'}">${k}${isReq ? '*' : ''}</span>`;
+          }).join(", ");
+
+          return `
+            <div class="tool-item">
+              <div class="tool-item-head">
+                <span class="tool-func-name">${escapeHtml(fn.name || "unnamed")}</span>
+                <button class="btn btn-ghost" style="padding: 2px 8px; font-size:11px;" onclick="selectToolCall('${escapeHtml(fn.name)}')">⚡ 发起此调用</button>
+              </div>
+              <div class="tool-desc">${escapeHtml(fn.description || "无描述")}</div>
+              <div class="tool-params-summary">参数: [${propList || "无"}]</div>
+            </div>
+          `;
+        }).join("");
+
+        // Populate dropdown in Tool Call Mode
+        toolSelectDropdown.innerHTML = tools.map(t => {
+          const fn = t.function || {};
+          return `<option value="${escapeHtml(fn.name)}">${escapeHtml(fn.name)} - ${escapeHtml(fn.description || "")}</option>`;
+        }).join("") + `<option value="__custom__">➕ 自定义工具函数…</option>`;
+      } else {
+        toolsCardEl.hidden = true;
+        toolSelectDropdown.innerHTML = `<option value="__custom__">➕ 自定义工具函数…</option>`;
+      }
+
+      // 3. Message Sequence & Prefix Folding
+      const msgs = job.messages || [];
+      let prefixCount = 0;
+      if (job.prefix_match && job.prefix_match.prefix_count > 0) {
+        prefixCount = job.prefix_match.prefix_count;
+      } else if (msgs.length > 2) {
+        prefixCount = msgs.length - 1;
+      }
+
+      const hasPrefix = prefixCount > 0 && prefixCount < msgs.length;
+      if (hasPrefix && autoFoldPrefix) {
+        prefixAccordionEl.hidden = false;
+        prefixSummaryEl.textContent = `(共 ${prefixCount} 条消息 · 续接自任务 #${job.prefix_match?.matched_job_id || '前序轮次'})`;
+        prefixToggleTextEl.textContent = prefixExpanded ? "收起前缀 ▲" : "点击展开 ▾";
+        prefixBodyEl.hidden = !prefixExpanded;
+
+        // Render prefix messages
+        const prefixMsgs = msgs.slice(0, prefixCount);
+        prefixBodyEl.innerHTML = prefixMsgs.map((m, idx) => renderMessageCard(m, idx, true)).join("");
+
+        // Render delta messages
+        const deltaMsgs = msgs.slice(prefixCount);
+        deltaMessagesEl.innerHTML = deltaMsgs.map((m, idx) => renderMessageCard(m, prefixCount + idx, false, true)).join("");
+      } else {
+        prefixAccordionEl.hidden = true;
+        deltaMessagesEl.innerHTML = msgs.map((m, idx) => renderMessageCard(m, idx, false, idx === msgs.length - 1)).join("");
+      }
+
+      // Completed Summary
+      if (!isPending) {
+        completedBadgeEl.className = `badge ${job.status}`;
+        completedBadgeEl.textContent = job.status.toUpperCase();
+        if (job.status === "completed") {
+          const detail = job.tool_calls ? `已调用工具 (${job.tool_calls.length} 个)` : `回复完成 (${job.reply?.length || 0} 字符)`;
+          completedSummaryTextEl.textContent = `${detail} · 耗费 ${job.usage?.total_tokens || 0} Tokens · finish_reason: ${job.finish_reason}`;
+        } else {
+          completedSummaryTextEl.textContent = `失败原因: ${job.error || "未知"} · code: ${job.finish_reason}`;
+        }
+      }
+    }
+
+    function renderMessageCard(m, index, isPrefix = false, isLatest = false) {
+      const role = m.role || "user";
+      const isToolCall = !!m.tool_calls;
+      const isToolResult = role === "tool";
+
+      let roleClass = "role-user";
+      let roleIcon = "👤";
+      if (role === "assistant") { roleClass = "role-assistant"; roleIcon = "🧠"; }
+      if (role === "system") { roleClass = "role-system"; roleIcon = "⚙️"; }
+      if (isToolResult) { roleClass = "role-tool"; roleIcon = "📥"; }
+      if (isToolCall) { roleClass = "role-toolcall"; roleIcon = "🔧"; }
+
+      let extraHeader = "";
+      if (isPrefix) {
+        extraHeader = '<span style="font-size:10px; color:var(--text-dim); background:var(--panel-3); padding:1px 6px; border-radius:4px;">历史前缀</span>';
+      } else if (isLatest) {
+        extraHeader = '<span style="font-size:10px; color:var(--accent); background:var(--accent-dim); padding:1px 6px; border-radius:4px; font-weight:700;">⚡ 最新增量</span>';
+      }
+
+      let contentHtml = "";
+      if (m.content) {
+        contentHtml += `<div class="msg-body">${renderMarkdown(textOf(m.content))}</div>`;
+      }
+
+      // Tool Calls list
+      if (m.tool_calls && Array.isArray(m.tool_calls)) {
+        contentHtml += m.tool_calls.map(tc => {
+          const fn = tc.function || {};
+          let argsFormatted = fn.arguments || "";
+          try {
+            argsFormatted = JSON.stringify(JSON.parse(fn.arguments), null, 2);
+          } catch(e) {}
+          return `
+            <div style="padding: 0 16px 14px;">
+              <div class="tool-call-box">
+                <div class="tool-call-box-title">
+                  <span>🔧 工具调用: <strong>${escapeHtml(fn.name)}</strong></span>
+                  <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim); margin-left:auto;">${escapeHtml(tc.id)}</span>
+                </div>
+                <div class="code-block" style="margin:4px 0 0;">
+                  <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(fn.arguments)}')">复制</button>
+                  <pre>${escapeHtml(argsFormatted)}</pre>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Tool Result
+      if (isToolResult) {
+        let contentFormatted = textOf(m.content);
+        try {
+          contentFormatted = JSON.stringify(JSON.parse(contentFormatted), null, 2);
+        } catch(e) {}
+        contentHtml = `
+          <div style="padding: 12px 16px;">
+            <div class="tool-result-box">
+              <div class="tool-result-title">
+                <span>📥 工具返回值 (call_id: ${escapeHtml(m.tool_call_id || "未知")})</span>
+              </div>
+              <div class="code-block" style="margin:6px 0 0;">
+                <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(contentFormatted)}')">复制</button>
+                <pre>${escapeHtml(contentFormatted)}</pre>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="msg-card ${isLatest ? 'new-turn' : ''}" style="${isPrefix ? 'opacity:0.85;' : ''}">
+          <div class="msg-header">
+            <div class="msg-role-tag ${roleClass}">
+              <span>${roleIcon}</span>
+              <span>${escapeHtml(role)}${m.name ? " · " + escapeHtml(m.name) : ""}</span>
+            </div>
+            <div>${extraHeader}</div>
+          </div>
+          ${contentHtml || '<div class="msg-body" style="color:var(--text-dim)">(无文本内容)</div>'}
         </div>
-      `).join("");
-      threadEl.innerHTML = `
-        <div class="payload">${escapeHtml(job.id)} · created ${new Date(job.created * 1000).toLocaleString()}${extra.length ? "<br>" + extra.map(escapeHtml).join("<br>") : ""}</div>
-        ${msgs}
-        ${job.reply ? `<div class="msg assistant"><div class="role">assistant (已回复)</div><pre>${escapeHtml(job.reply)}</pre></div>` : ""}
-        ${job.error ? `<div class="msg system"><div class="role">error</div><pre>${escapeHtml(job.error)}</pre></div>` : ""}
       `;
-      threadEl.scrollTop = threadEl.scrollHeight;
     }
 
-    function escapeHtml(s) {
-      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[c]));
+    // Interactive Tool Call Selection
+    window.selectToolCall = function(funcName) {
+      currentMode = "tool";
+      tabTextMode.classList.remove("active");
+      tabToolMode.classList.add("active");
+      textModePanel.hidden = true;
+      toolModePanel.hidden = false;
+      finishReasonSelect.value = "tool_calls";
+
+      toolSelectDropdown.value = funcName;
+      toolCallIdInput.value = generateCallId();
+
+      // Autofill Template from schema
+      autofillTemplateFor(funcName);
+      composerEl.scrollIntoView({ behavior: "smooth" });
+      toolArgsInput.focus();
+    };
+
+    function autofillTemplateFor(funcName) {
+      const job = jobs.find(j => j.id === selectedId);
+      if (!job) return;
+      const tool = (job.payload?.tools || []).find(t => t.function?.name === funcName);
+      if (tool && tool.function?.parameters?.properties) {
+        const props = tool.function.parameters.properties;
+        const template = {};
+        for (const [k, v] of Object.entries(props)) {
+          if (v.type === "string") template[k] = v.enum ? v.enum[0] : (v.description || "value");
+          else if (v.type === "number" || v.type === "integer") template[k] = 0;
+          else if (v.type === "boolean") template[k] = true;
+          else if (v.type === "array") template[k] = [];
+          else if (v.type === "object") template[k] = {};
+          else template[k] = "";
+        }
+        toolArgsInput.value = JSON.stringify(template, null, 2);
+        validateJson();
+      } else {
+        toolArgsInput.value = "{}";
+        validateJson();
+      }
     }
 
+    function validateJson() {
+      try {
+        JSON.parse(toolArgsInput.value || "{}");
+        jsonBadge.className = "json-valid-badge valid";
+        jsonBadge.textContent = "✓ JSON 格式有效";
+        return true;
+      } catch (e) {
+        jsonBadge.className = "json-valid-badge invalid";
+        jsonBadge.textContent = "✕ JSON 语法错误: " + e.message;
+        return false;
+      }
+    }
+
+    // Snippets management
+    async function loadSnippets() {
+      try {
+        const res = await fetch("/operator/snippets");
+        snippets = await res.json();
+        renderSnippets();
+      } catch (e) {
+        console.error("Failed to load snippets:", e);
+      }
+    }
+
+    function renderSnippets() {
+      snippetsListEl.innerHTML = snippets.map(s => `
+        <button class="snippet-chip" title="${escapeHtml(s.content)}" data-content="${escapeHtml(s.content)}">
+          ${escapeHtml(s.title)}
+        </button>
+      `).join("");
+    }
+
+    snippetsListEl.addEventListener("click", (e) => {
+      const chip = e.target.closest(".snippet-chip");
+      if (chip && chip.dataset.content) {
+        replyInput.value = chip.dataset.content;
+        replyInput.focus();
+      }
+    });
+
+    // Send reply
+    async function sendReply() {
+      const job = jobs.find(j => j.id === selectedId);
+      if (!job || job.status !== "pending") return;
+
+      sendBtn.disabled = true;
+      let body = {};
+
+      if (currentMode === "text") {
+        body = {
+          content: replyInput.value,
+          finish_reason: finishReasonSelect.value,
+        };
+      } else {
+        // Tool mode
+        if (!validateJson()) {
+          alert("工具调用参数包含 JSON 语法错误，请修改后再发送。");
+          sendBtn.disabled = false;
+          return;
+        }
+
+        const funcName = toolSelectDropdown.value === "__custom__"
+          ? prompt("请输入自定义工具函数名称:", "my_custom_tool")
+          : toolSelectDropdown.value;
+
+        if (!funcName) {
+          sendBtn.disabled = false;
+          return;
+        }
+
+        const callId = toolCallIdInput.value || generateCallId();
+        const argsStr = toolArgsInput.value.trim() || "{}";
+
+        body = {
+          content: toolContentInput.value || null,
+          finish_reason: "tool_calls",
+          tool_calls: [
+            {
+              id: callId,
+              type: "function",
+              function: {
+                name: funcName,
+                arguments: argsStr,
+              }
+            }
+          ]
+        };
+      }
+
+      try {
+        const res = await fetch(`/operator/jobs/${job.id}/reply`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          alert("提交回复失败: " + await res.text());
+        } else {
+          replyInput.value = "";
+          toolContentInput.value = "";
+        }
+      } catch (e) {
+        alert("网络请求失败: " + e.message);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    // Reject job
+    async function rejectJob() {
+      const job = jobs.find(j => j.id === selectedId);
+      if (!job || job.status !== "pending") return;
+
+      const message = prompt("请输入拒绝原因 (例如: operator rejected the request / 无权限):", "operator rejected the request");
+      if (message === null) return;
+
+      await fetch(`/operator/jobs/${job.id}/reject`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: message || "operator rejected the request" }),
+      });
+    }
+
+    // Apply Cached reply
+    async function applyCacheAndSend() {
+      const job = jobs.find(j => j.id === selectedId);
+      if (!job || !job.exact_match) return;
+
+      const cache = job.exact_match;
+      await fetch(`/operator/jobs/${job.id}/reply`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          content: cache.reply,
+          tool_calls: cache.tool_calls,
+          finish_reason: cache.finish_reason || "stop",
+        }),
+      });
+    }
+
+    function fillCacheToInput() {
+      const job = jobs.find(j => j.id === selectedId);
+      if (!job || !job.exact_match) return;
+
+      const cache = job.exact_match;
+      if (cache.tool_calls) {
+        selectToolCall(cache.tool_calls[0]?.function?.name || "");
+        toolArgsInput.value = cache.tool_calls[0]?.function?.arguments || "{}";
+        validateJson();
+      } else {
+        currentMode = "text";
+        tabTextMode.classList.add("active");
+        tabToolMode.classList.remove("active");
+        textModePanel.hidden = false;
+        toolModePanel.hidden = true;
+        replyInput.value = cache.reply || "";
+        replyInput.focus();
+      }
+    }
+
+    // Upsert Job into list
     function upsert(job) {
-      const i = jobs.findIndex((j) => j.id === job.id);
-      if (i >= 0) jobs[i] = job;
-      else jobs.unshift(job);
+      const i = jobs.findIndex(j => j.id === job.id);
+      const isNew = i < 0;
+      if (!isNew) {
+        jobs[i] = job;
+      } else {
+        jobs.unshift(job);
+        if (job.status === "pending") {
+          playChime();
+        }
+      }
+
       jobs.sort((a, b) => {
-        const rank = (s) => s === "pending" ? 0 : 1;
+        const rank = s => s === "pending" ? 0 : 1;
         const d = rank(a.status) - rank(b.status);
         return d !== 0 ? d : b.created - a.created;
       });
-      if (!selected && job.status === "pending") selected = job.id;
+
+      if (!selectedId && job.status === "pending") {
+        selectedId = job.id;
+      }
+
       renderJobs();
-      if (selected === job.id) renderThread(job);
+      if (selectedId === job.id) {
+        renderThread(job);
+      }
     }
 
-    async function load() {
+    // Load initial jobs
+    async function loadJobs() {
       const res = await fetch("/operator/jobs");
       const data = await res.json();
       jobs = data.jobs || [];
-      if (!selected) {
-        const first = jobs.find((j) => j.status === "pending") || jobs[0];
-        selected = first ? first.id : null;
+
+      if (!selectedId) {
+        const first = jobs.find(j => j.status === "pending") || jobs[0];
+        selectedId = first ? first.id : null;
       }
       renderJobs();
-      renderThread(jobs.find((j) => j.id === selected));
+      renderThread(jobs.find(j => j.id === selectedId));
     }
 
+    // WebSocket connection
     function connect() {
       const proto = location.protocol === "https:" ? "wss" : "ws";
       ws = new WebSocket(`${proto}://${location.host}/operator/ws`);
-      ws.onopen = () => { connEl.textContent = "实时连接"; dotEl.classList.add("live"); };
+
+      ws.onopen = () => {
+        connEl.textContent = "实时在线";
+        dotEl.classList.add("live");
+      };
+
       ws.onclose = () => {
         connEl.textContent = "已断开，3s 后重连";
         dotEl.classList.remove("live");
         setTimeout(connect, 3000);
       };
+
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
-        if (msg.job) upsert(msg.job);
+        if (msg.job) {
+          upsert(msg.job);
+        }
       };
     }
 
-    jobsEl.addEventListener("click", (e) => {
+    // Event Listeners
+    jobsListEl.addEventListener("click", (e) => {
       const node = e.target.closest(".job");
       if (!node || !node.dataset.id) return;
-      selected = node.dataset.id;
+      selectedId = node.dataset.id;
+      prefixExpanded = false;
       renderJobs();
-      renderThread(jobs.find((j) => j.id === selected));
-      replyEl.focus();
+      renderThread(jobs.find(j => j.id === selectedId));
+      replyInput.focus();
     });
 
-    async function sendReply() {
-      const job = jobs.find((j) => j.id === selected);
-      if (!job || job.status !== "pending") return;
-      const content = replyEl.value;
-      const res = await fetch(`/operator/jobs/${job.id}/reply`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-      if (!res.ok) {
-        alert(await res.text());
-        return;
+    jobIdPillEl.addEventListener("click", () => {
+      const job = jobs.find(j => j.id === selectedId);
+      if (job) {
+        navigator.clipboard.writeText(job.id);
+        alert(`已复制任务 ID: ${job.id}`);
       }
-      replyEl.value = "";
-    }
+    });
 
-    async function rejectJob() {
-      const job = jobs.find((j) => j.id === selected);
-      if (!job || job.status !== "pending") return;
-      const message = prompt("拒绝原因", "operator rejected the request") || "operator rejected the request";
-      await fetch(`/operator/jobs/${job.id}/reject`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message }),
+    copyReplyBtnEl.addEventListener("click", () => {
+      const job = jobs.find(j => j.id === selectedId);
+      if (job) {
+        const text = job.tool_calls ? JSON.stringify(job.tool_calls, null, 2) : (job.reply || "");
+        navigator.clipboard.writeText(text);
+        alert("已复制回复内容！");
+      }
+    });
+
+    // Sound toggle
+    soundToggleEl.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundToggleEl.textContent = soundEnabled ? "🔊" : "🔇";
+      soundToggleEl.classList.toggle("active", soundEnabled);
+    });
+
+    // Search input
+    searchInputEl.addEventListener("input", (e) => {
+      searchQuery = e.target.value.trim();
+      searchClearEl.style.display = searchQuery ? "block" : "none";
+      renderJobs();
+    });
+    searchClearEl.addEventListener("click", () => {
+      searchInputEl.value = "";
+      searchQuery = "";
+      searchClearEl.style.display = "none";
+      renderJobs();
+    });
+
+    // Filter tabs
+    document.querySelectorAll(".filter-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        filterStatus = tab.dataset.filter;
+        renderJobs();
       });
-    }
+    });
 
-    sendEl.addEventListener("click", sendReply);
-    rejectEl.addEventListener("click", rejectJob);
-    replyEl.addEventListener("keydown", (e) => {
+    // Global toggle for auto fold prefix
+    togglePrefixGlobalBtn.addEventListener("click", () => {
+      autoFoldPrefix = !autoFoldPrefix;
+      togglePrefixGlobalBtn.textContent = autoFoldPrefix ? "📁 折叠前缀: 开" : "📁 折叠前缀: 关";
+      renderThread(jobs.find(j => j.id === selectedId));
+    });
+
+    // Prefix Accordion header click
+    prefixHeaderEl.addEventListener("click", () => {
+      prefixExpanded = !prefixExpanded;
+      prefixBodyEl.hidden = !prefixExpanded;
+      prefixToggleTextEl.textContent = prefixExpanded ? "收起前缀 ▲" : "点击展开 ▾";
+    });
+
+    // Tools card header click
+    toolsCardToggleEl.addEventListener("click", () => {
+      toolsExpanded = !toolsExpanded;
+      toolsCardBodyEl.hidden = !toolsExpanded;
+      toolsCardChevronEl.textContent = toolsExpanded ? '▲' : '▼';
+    });
+
+    // Mode tabs in composer
+    tabTextMode.addEventListener("click", () => {
+      currentMode = "text";
+      tabTextMode.classList.add("active");
+      tabToolMode.classList.remove("active");
+      textModePanel.hidden = false;
+      toolModePanel.hidden = true;
+      if (finishReasonSelect.value === "tool_calls") finishReasonSelect.value = "stop";
+    });
+
+    tabToolMode.addEventListener("click", () => {
+      currentMode = "tool";
+      tabTextMode.classList.remove("active");
+      tabToolMode.classList.add("active");
+      textModePanel.hidden = true;
+      toolModePanel.hidden = false;
+      finishReasonSelect.value = "tool_calls";
+      if (!toolCallIdInput.value) toolCallIdInput.value = generateCallId();
+      if (!toolArgsInput.value) autofillTemplateFor(toolSelectDropdown.value);
+    });
+
+    regenerateIdBtn.addEventListener("click", () => {
+      toolCallIdInput.value = generateCallId();
+    });
+
+    toolSelectDropdown.addEventListener("change", () => {
+      autofillTemplateFor(toolSelectDropdown.value);
+    });
+
+    autoTemplateBtn.addEventListener("click", () => {
+      autofillTemplateFor(toolSelectDropdown.value);
+    });
+
+    toolArgsInput.addEventListener("input", validateJson);
+
+    sendBtn.addEventListener("click", sendReply);
+    rejectBtn.addEventListener("click", rejectJob);
+
+    applyCacheSendBtn.addEventListener("click", applyCacheAndSend);
+    fillCacheBtn.addEventListener("click", fillCacheToInput);
+
+    // Keyboard Shortcuts
+    window.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        sendReply();
+        if (e.shiftKey) {
+          applyCacheAndSend();
+        } else {
+          sendReply();
+        }
+      }
+      if (e.key === "Escape") {
+        rawModal.hidden = true;
+        snippetModal.hidden = true;
       }
     });
 
-    load();
+    // Raw modal
+    viewRawBtn.addEventListener("click", () => {
+      const job = jobs.find(j => j.id === selectedId);
+      if (job) {
+        rawPayloadContent.textContent = JSON.stringify(job, null, 2);
+        rawModal.hidden = false;
+      }
+    });
+    closeRawModal.addEventListener("click", () => rawModal.hidden = true);
+
+    // Snippet modal
+    addSnippetBtn.addEventListener("click", () => {
+      snippetTitleInput.value = "";
+      snippetContentInput.value = replyInput.value || "";
+      snippetModal.hidden = false;
+      snippetTitleInput.focus();
+    });
+    closeSnippetModal.addEventListener("click", () => snippetModal.hidden = true);
+
+    saveSnippetBtn.addEventListener("click", async () => {
+      const title = snippetTitleInput.value.trim();
+      const content = snippetContentInput.value.trim();
+      if (!title || !content) {
+        alert("请填写标题和内容");
+        return;
+      }
+      try {
+        await fetch("/operator/snippets", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ title, content }),
+        });
+        snippetModal.hidden = true;
+        loadSnippets();
+      } catch (e) {
+        alert("保存模板失败: " + e.message);
+      }
+    });
+
+    // Initialize
+    loadSnippets();
+    loadJobs();
     connect();
   </script>
 </body>

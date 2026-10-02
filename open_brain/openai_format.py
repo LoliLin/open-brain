@@ -44,6 +44,12 @@ def estimate_prompt_tokens(messages: list[dict[str, Any]]) -> int:
 
 
 def chat_completion(job: Job) -> dict[str, Any]:
+    msg: dict[str, Any] = {"role": "assistant"}
+    if job.tool_calls:
+        msg["content"] = job.reply if job.reply else None
+        msg["tool_calls"] = job.tool_calls
+    else:
+        msg["content"] = job.reply or ""
     return {
         "id": job.id,
         "object": "chat.completion",
@@ -52,7 +58,7 @@ def chat_completion(job: Job) -> dict[str, Any]:
         "choices": [
             {
                 "index": 0,
-                "message": {"role": "assistant", "content": job.reply or ""},
+                "message": msg,
                 "finish_reason": job.finish_reason,
                 "logprobs": None,
             }
@@ -94,6 +100,9 @@ def chunk_text(text: str, size: int = 12) -> Iterator[str]:
 
 
 def chat_stream_frames(job: Job) -> Iterator[str]:
+    first_delta: dict[str, Any] = {"role": "assistant"}
+    if not job.tool_calls:
+        first_delta["content"] = ""
     first = {
         "id": job.id,
         "object": "chat.completion.chunk",
@@ -102,24 +111,91 @@ def chat_stream_frames(job: Job) -> Iterator[str]:
         "choices": [
             {
                 "index": 0,
-                "delta": {"role": "assistant", "content": ""},
+                "delta": first_delta,
                 "finish_reason": None,
             }
         ],
     }
     yield _sse(first)
-    for piece in chunk_text(job.reply or ""):
-        if not piece:
-            continue
-        yield _sse(
-            {
-                "id": job.id,
-                "object": "chat.completion.chunk",
-                "created": job.created,
-                "model": job.model,
-                "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
-            }
-        )
+
+    if job.reply:
+        for piece in chunk_text(job.reply):
+            if not piece:
+                continue
+            yield _sse(
+                {
+                    "id": job.id,
+                    "object": "chat.completion.chunk",
+                    "created": job.created,
+                    "model": job.model,
+                    "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
+                }
+            )
+
+    if job.tool_calls:
+        for tc_idx, tc in enumerate(job.tool_calls):
+            tc_id = tc.get("id") or f"call_{tc_idx}"
+            func_name = tc.get("function", {}).get("name", "")
+            raw_args = tc.get("function", {}).get("arguments", "")
+            if isinstance(raw_args, (dict, list)):
+                raw_args = json.dumps(raw_args, ensure_ascii=False)
+
+            yield _sse(
+                {
+                    "id": job.id,
+                    "object": "chat.completion.chunk",
+                    "created": job.created,
+                    "model": job.model,
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {
+                                "tool_calls": [
+                                    {
+                                        "index": tc_idx,
+                                        "id": tc_id,
+                                        "type": tc.get("type", "function"),
+                                        "function": {
+                                            "name": func_name,
+                                            "arguments": "",
+                                        },
+                                    }
+                                ]
+                            },
+                            "finish_reason": None,
+                        }
+                    ],
+                }
+            )
+
+            for piece in chunk_text(str(raw_args), size=16):
+                if not piece:
+                    continue
+                yield _sse(
+                    {
+                        "id": job.id,
+                        "object": "chat.completion.chunk",
+                        "created": job.created,
+                        "model": job.model,
+                        "choices": [
+                            {
+                                "index": 0,
+                                "delta": {
+                                    "tool_calls": [
+                                        {
+                                            "index": tc_idx,
+                                            "function": {
+                                                "arguments": piece,
+                                            },
+                                        }
+                                    ]
+                                },
+                                "finish_reason": None,
+                            }
+                        ],
+                    }
+                )
+
     yield _sse(
         {
             "id": job.id,
